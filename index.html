@@ -336,11 +336,12 @@
 
 
   <!-- CONTACT -->
-  <section id="contact" class="fade-in">
+<!-- CONTACT -->
+<section id="contact" class="fade-in">
   <h2>Contact Me</h2>
   <div class="contact-grid" style="margin-top:18px; max-width:980px;">
-    <form id="contactForm" action="https://formspree.io/f/replace-with-your-id" method="POST" class="card fade-in" style="display:block;">
-      <!-- Formspree endpoint hides your email; replace with your real form ID -->
+    <form id="contactForm" action="https://formspree.io/f/your-real-id" method="POST" class="card fade-in" style="display:block;">
+      <!-- Replace 'your-real-id' with the actual Formspree ID -->
       <input name="name" type="text" placeholder="Your name" required />
       <input name="email" type="email" placeholder="Your email" required />
       <textarea name="message" rows="6" placeholder="Your message" required></textarea>
@@ -355,6 +356,64 @@
     </div>
   </div>
 </section>
+
+<script>
+  const contactForm = document.getElementById('contactForm');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const action = form.action;
+    const data = new FormData(form);
+
+    const name = form.querySelector('[name="name"]').value.trim();
+    const email = form.querySelector('[name="email"]').value.trim();
+    const message = form.querySelector('[name="message"]').value.trim();
+
+    if (!name || !email || !message) {
+      showToast('Please fill in all fields.', 'error');
+      return;
+    }
+
+    // Check if Formspree ID is still placeholder
+    if (action.includes('replace-with-your-id') || action.includes('your-real-id')) {
+      showToast('Form endpoint invalid. Replace Formspree ID.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(action, {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (res.ok) {
+        showToast('Message sent — thank you!', 'success');
+        form.reset();
+      } else {
+        showToast('Submission failed. Check Formspree endpoint.', 'error');
+        console.warn('Form submit failed:', res.status, res.statusText);
+      }
+    } catch (err) {
+      showToast('Network error. Check form action or connection.', 'error');
+      console.error(err);
+    }
+  });
+
+  // Toast helper
+  function showToast(message, type = 'success') {
+    const id = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.id = id;
+    toast.className = 'toast ' + (type === 'error' ? 'error' : 'success') + ' show';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.classList.remove('show'); toast.style.opacity = '0'; }, 3400);
+    setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 4200);
+  }
+</script>
+
 
 
   <!-- Toast placeholder -->
@@ -487,5 +546,6 @@
 </body>
 
 </html>
+
 
 
