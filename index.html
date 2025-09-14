@@ -357,93 +357,42 @@
     </div>
   </section>
 
-<script>
-  const contactForm = document.getElementById('contactForm');
-
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const action = form.action;
-    const data = new FormData(form);
-
-    const name = form.querySelector('[name="name"]').value.trim();
-    const email = form.querySelector('[name="email"]').value.trim();
-    const message = form.querySelector('[name="message"]').value.trim();
-
-    if (!name || !email || !message) {
-      showToast('Please fill in all fields.', 'error');
-      return;
-    }
-
-    // Check if Formspree ID is still placeholder
-    if (action.includes('replace-with-your-id') || action.includes('your-real-id')) {
-      showToast('Form endpoint invalid. Replace Formspree ID.', 'error');
-      return;
-    }
-
-    try {
-      const res = await fetch(action, {
-        method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (res.ok) {
-        showToast('Message sent — thank you!', 'success');
-        form.reset();
-      } else {
-        showToast('Submission failed. Check Formspree endpoint.', 'error');
-        console.warn('Form submit failed:', res.status, res.statusText);
-      }
-    } catch (err) {
-      showToast('Network error. Check form action or connection.', 'error');
-      console.error(err);
-    }
-  });
-
-  // Toast helper
-  function showToast(message, type = 'success') {
-    const id = 'toast-' + Date.now();
-    const toast = document.createElement('div');
-    toast.id = id;
-    toast.className = 'toast ' + (type === 'error' ? 'error' : 'success') + ' show';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.classList.remove('show'); toast.style.opacity = '0'; }, 3400);
-    setTimeout(() => { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 4200);
-  }
-</script>
-
-
-
   <!-- Toast placeholder -->
   <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
   <script>
+  document.addEventListener('DOMContentLoaded', () => {
     /* ---------- Mobile menu ---------- */
     const hamburger = document.querySelector('.hamburger');
     const navList = document.getElementById('navList');
     const navLinks = document.querySelectorAll('a.nav-link');
 
-    hamburger.addEventListener('click', () => {
-      const expanded = hamburger.getAttribute('aria-expanded') === 'true';
-      hamburger.setAttribute('aria-expanded', String(!expanded));
-      navList.classList.toggle('show');
-      hamburger.querySelector('i').classList.toggle('fa-bars');
-      hamburger.querySelector('i').classList.toggle('fa-xmark');
-    });
-
-    // Close mobile menu when clicking a link
-    navLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        if (navList.classList.contains('show')) {
-          navList.classList.remove('show');
-          hamburger.setAttribute('aria-expanded', 'false');
-          const icon = hamburger.querySelector('i');
-          icon.classList.remove('fa-xmark'); icon.classList.add('fa-bars');
+    if (hamburger) {
+      hamburger.addEventListener('click', () => {
+        const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+        hamburger.setAttribute('aria-expanded', String(!expanded));
+        if (navList) navList.classList.toggle('show');
+        const icon = hamburger.querySelector('i');
+        if (icon) {
+          icon.classList.toggle('fa-bars');
+          icon.classList.toggle('fa-xmark');
         }
       });
-    });
+    }
+
+    // Close mobile menu when clicking a link
+    if (navLinks && navLinks.length) {
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (navList && navList.classList.contains('show')) {
+            navList.classList.remove('show');
+            if (hamburger) hamburger.setAttribute('aria-expanded', 'false');
+            const icon = hamburger && hamburger.querySelector('i');
+            if (icon) { icon.classList.remove('fa-xmark'); icon.classList.add('fa-bars'); }
+          }
+        });
+      });
+    }
 
     /* ---------- Fade-in on scroll ---------- */
     const faders = document.querySelectorAll('.fade-in');
@@ -492,37 +441,45 @@
 
     /* ---------- Contact form handler (Formspree placeholder) ---------- */
     const contactForm = document.getElementById('contactForm');
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const action = form.action;
-      const data = new FormData(form);
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const action = form.action;
+        const data = new FormData(form);
 
-      // Basic client-side validation
-      const name = form.querySelector('[name="name"]').value.trim();
-      const email = form.querySelector('[name="email"]').value.trim();
-      const message = form.querySelector('[name="message"]').value.trim();
-      if (!name || !email || !message) { showToast('Please fill in all fields.', 'error'); return; }
+        // Basic client-side validation
+        const name = form.querySelector('[name="name"]').value.trim();
+        const email = form.querySelector('[name="email"]').value.trim();
+        const message = form.querySelector('[name="message"]').value.trim();
+        if (!name || !email || !message) { showToast('Please fill in all fields.', 'error'); return; }
 
-      // Send request (Formspree or your backend). Replace the action URL with your real endpoint.
-      try {
-        const res = await fetch(action, {
-          method: 'POST',
-          body: data,
-          headers: { 'Accept': 'application/json' }
-        });
-        if (res.ok) {
-          showToast('Message sent — thank you!', 'success');
-          form.reset();
-        } else {
-          showToast('Submission failed. Replace Formspree ID or check endpoint.', 'error');
-          console.warn('Form submit failed:', res.status, res.statusText);
+        // Check if Formspree ID is still placeholder
+        if (action.includes('replace-with-your-id') || action.includes('your-real-id') || action.includes('yourformid')) {
+          showToast('Form endpoint invalid. Replace Formspree ID.', 'error');
+          return;
         }
-      } catch (err) {
-        showToast('Network error. Check form action or connection.', 'error');
-        console.error(err);
-      }
-    });
+
+        try {
+          const res = await fetch(action, {
+            method: 'POST',
+            body: data,
+            headers: { 'Accept': 'application/json' }
+          });
+
+          if (res.ok) {
+            showToast('Message sent — thank you!', 'success');
+            form.reset();
+          } else {
+            showToast('Submission failed. Check Formspree endpoint.', 'error');
+            console.warn('Form submit failed:', res.status, res.statusText);
+          }
+        } catch (err) {
+          showToast('Network error. Check form action or connection.', 'error');
+          console.error(err);
+        }
+      });
+    }
 
     /* ---------- Simple toast notifications ---------- */
     function showToast(message, type = 'success') {
@@ -542,11 +499,8 @@
         console.warn('PDF object failed to load. Ensure "Punni Akter.pdf" is in the same folder as index.html');
       }
     }, true);
+  });
   </script>
 </body>
 
 </html>
-
-
-
-
